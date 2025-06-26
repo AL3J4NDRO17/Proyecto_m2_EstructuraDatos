@@ -2,6 +2,7 @@ from flask import Flask, request, render_template, jsonify
 import joblib
 import pandas as pd
 import logging
+import numpy as np
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.DEBUG)
@@ -17,7 +18,6 @@ top_6_features = [
     'Per_Km_Rate',
     'Trip_Duration_Minutes',
     'Per_Minute_Rate',
-   
 ]
 
 @app.route('/')
@@ -38,11 +38,15 @@ def predict():
         input_scaled = scaler.transform(input_df)
         input_scaled_df = pd.DataFrame(input_scaled, columns=input_df.columns)
 
-        # Predicción
-        prediction = model.predict(input_scaled_df)
-        app.logger.debug(f'Predicción generada: {prediction[0]}')
+        # Predicción en log
+        pred_log = model.predict(input_scaled_df)
+        app.logger.debug(f'Predicción (log): {pred_log[0]}')
 
-        return jsonify({'prediccion': prediction[0]})
+        # Convertir a pesos reales
+        pred_real = float(np.expm1(pred_log[0]))  # 👈 esto es lo que faltaba
+        app.logger.debug(f'Predicción (real): {pred_real:.2f}')
+
+        return jsonify({'prediccion': round(pred_real, 2)})
     
     except Exception as e:
         app.logger.error(f'Error en la predicción: {str(e)}')
