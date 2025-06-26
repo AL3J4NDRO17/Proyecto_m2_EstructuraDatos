@@ -3,7 +3,7 @@ import joblib
 import pandas as pd
 import logging
 
-app = Flask(_name_)
+app = Flask(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
 # Cargar modelo y scaler
