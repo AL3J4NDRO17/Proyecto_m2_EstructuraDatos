@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Predicción de Costo de Taxi</title>
+  <!-- Tailwind CSS CDN para un estilo sencillo y moderno -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+  <main class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+      <h1 class="text-2xl font-bold text-center mb-6 text-gray-800">Predicción de Costo de Taxi</h1>
+      <form id="predictionForm" class="space-y-4">
+          <div>
+              <label for="Trip_Distance_km" class="block text-sm font-medium text-gray-700">Distancia del Viaje (km)</label>
+              <input type="number" step="0.01" id="Trip_Distance_km" name="Trip_Distance_km" required
+                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm"
+                     placeholder="Ej: 5.2">
+          </div>
+          <div>
+              <label for="Per_Km_Rate" class="block text-sm font-medium text-gray-700">Tarifa por Km</label>
+              <input type="number" step="0.01" id="Per_Km_Rate" name="Per_Km_Rate" required
+                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm"
+                     placeholder="Ej: 1.5">
+          </div>
+          <div>
+              <label for="Trip_Duration_Minutes" class="block text-sm font-medium text-gray-700">Duración del Viaje (minutos)</label>
+              <input type="number" step="0.01" id="Trip_Duration_Minutes" name="Trip_Duration_Minutes" required
+                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm"
+                     placeholder="Ej: 15.0">
+          </div>
+          <div>
+              <label for="Per_Minute_Rate" class="block text-sm font-medium text-gray-700">Tarifa por Minuto</label>
+              <input type="number" step="0.01" id="Per_Minute_Rate" name="Per_Minute_Rate" required
+                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm"
+                     placeholder="Ej: 0.2">
+          </div>
+          <button type="submit"
+                  class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+              Predecir Costo
+          </button>
+      </form>
+      <div id="predictionResult" class="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-md text-center hidden" role="status">
+          <p class="text-lg font-semibold text-gray-800">Costo Estimado:</p>
+          <p id="resultValue" class="text-2xl font-bold text-green-600 mt-2"></p>
+      </div>
+      <div id="errorMessage" class="mt-6 p-4 bg-red-50 border border-red-200 rounded-md text-center text-red-700 hidden" role="alert">
+          <p id="errorText" class="text-sm"></p>
+      </div>
+  </main>
+
+  <script>
+      document.getElementById('predictionForm').addEventListener('submit', async function(event) {
+          event.preventDefault(); // Prevenir el envío tradicional del formulario
+
+          const form = event.target;
+          const formData = new FormData(form);
+          const resultDiv = document.getElementById('predictionResult');
+          const resultValue = document.getElementById('resultValue');
+          const errorDiv = document.getElementById('errorMessage');
+          const errorText = document.getElementById('errorText');
+
+          // Ocultar resultados y errores anteriores
+          resultDiv.classList.add('hidden');
+          errorDiv.classList.add('hidden');
+
+          try {
+              const response = await fetch('/predict', {
+                  method: 'POST',
+                  body: formData
+              });
+
+              const data = await response.json();
+
+              if (response.ok) {
+                  resultValue.textContent = `$${data.prediccion.toFixed(2)}`; // Formatear a 2 decimales
+                  resultDiv.classList.remove('hidden');
+              } else {
+                  errorText.textContent = `Error: ${data.error || 'Algo salió mal.'}`;
+                  errorDiv.classList.remove('hidden');
+              }
+          } catch (error) {
+              errorText.textContent = `Error de conexión: ${error.message}`;
+              errorDiv.classList.remove('hidden');
+          }
+      });
+  </script>
+</body>
+</html>
